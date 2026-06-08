@@ -134,6 +134,14 @@
             margin: 15px;
         }
 
+        .detalles-resumen {
+            text-align: left;
+            max-width: 300px;
+            margin: 20px auto;
+            font-size: 18px;
+            line-height: 1.8;
+        }
+
         @media(max-width:768px){
             .avatar { font-size: 60px; }
             .pregunta { font-size: 18px; }
@@ -143,11 +151,11 @@
 <body>
 
 <div class="contenedor">
-    <h1>🏪 AM/PM MateKen2</h1>
+    <h1>🏪 AM/PM MateKen2h1>
 
     <div id="inicio">
         <div class="avatar">🤖</div>
-        <button class="boton" onclick="iniciarJuego()">▶ Empezar Juego</button>
+        <button class="boton" onclick="iniciarAudio(); iniciarJuego();">▶ Empezar Juego</button>
     </div>
 
     <div id="juego" style="display:none;">
@@ -168,9 +176,17 @@
 
     <div id="resultado" class="resultado">
         <h2>🎉 Excelente Trabajo 🎉</h2>
-        <div class="insignia" id="insignia"></div>
-        <h1 id="porcentaje"></h1>
-        <p id="resumen" style="margin: 15px 0; font-size: 18px;"></p>
+        <div id="insignia" class="insignia"></div>
+        <h1 id="rango" style="font-size: 50px; margin: 10px 0; color: #333;"></h1>
+        <h1 id="porcentaje" style="color: #2e7d32; font-size: 40px; margin-bottom: 15px;"></h1>
+
+        <div class="detalles-resumen">
+            <div>✔️ Correctas: <span id="res-correctas"></span></div>
+            <div>❌ Incorrectas: <span id="res-incorrectas"></span></div>
+            <div>⏱️ Tiempo: <span id="res-tiempo"></span> segundos</div>
+            <div>🏪 Nivel: AM/PM MateKen PRO</div>
+        </div>
+
         <button class="boton" onclick="reiniciar()">🔄 Jugar Nuevamente</button>
     </div>
 </div>
@@ -180,56 +196,51 @@
     let aciertos = 0;
     let segundos = 0;
     let cronometro;
-    let audioCtx = null;
+    let audioCtx;
 
-    // Inicializa el contexto de audio de forma segura
-    function initAudio() {
+    function iniciarAudio() {
         if (!audioCtx) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
-    }
-
-    // Generador de efectos de sonido sintéticos
-    function reproducirSonido(tipo) {
-        initAudio();
-        if (!audioCtx) return;
-
-        let osc = audioCtx.createOscillator();
-        let gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        let tiempoActual = audioCtx.currentTime;
-
-        if (tipo === 'correcto') {
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(523.25, tiempoActual); // Nota C5
-            osc.frequency.setValueAtTime(659.25, tiempoActual + 0.1); // Nota E5
-            gain.gain.setValueAtTime(0.3, tiempoActual);
-            gain.gain.exponentialRampToValueAtTime(0.01, tiempoActual + 0.3);
-            osc.start(tiempoActual);
-            osc.stop(tiempoActual + 0.3);
-        } else if (tipo === 'incorrecto') {
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(150, tiempoActual);
-            osc.frequency.linearRampToValueAtTime(80, tiempoActual + 0.2);
-            gain.gain.setValueAtTime(0.3, tiempoActual);
-            gain.gain.exponentialRampToValueAtTime(0.01, tiempoActual + 0.2);
-            osc.start(tiempoActual);
-            osc.stop(tiempoActual + 0.2);
-        } else if (tipo === 'victoria') {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(523.25, tiempoActual);
-            osc.frequency.setValueAtTime(659.25, tiempoActual + 0.1);
-            osc.frequency.setValueAtTime(783.99, tiempoActual + 0.2);
-            osc.frequency.setValueAtTime(1046.50, tiempoActual + 0.3);
-            gain.gain.setValueAtTime(0.4, tiempoActual);
-            gain.gain.exponentialRampToValueAtTime(0.01, tiempoActual + 0.5);
-            osc.start(tiempoActual);
-            osc.stop(tiempoActual + 0.5);
+        if (audioCtx.state === "suspended") {
+            audioCtx.resume();
         }
     }
 
+    // =========================
+    // SONIDOS NATIVOS
+    // =========================
+    function sonidoCorrecto() {
+        iniciarAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(850, audioCtx.currentTime);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+    }
+
+    function sonidoError() {
+        iniciarAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "square";
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.4);
+    }
+
+    // =========================
+    // UTILIDADES MONEDA
+    // =========================
     function C(valor) {
         return "C$ " + valor.toLocaleString('es-NI', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
     }
@@ -252,49 +263,48 @@
                 icono: "🌭",
                 pregunta: `Compraste ${cantidad} hot dogs a ${C(precio)} cada uno. ¿Cuánto pagaste en total?`,
                 respuesta: cantidad * precio,
-                pista: "Multiplica la cantidad por el precio"
+              
             });
 
             banco.push({
                 icono: "☕",
                 pregunta: `Compraste ${cantidad} cafés a ${C(precio)} cada uno. ¿Cuál es el total en córdobas?`,
-                respuesta: cantidad * precio,
-                pista: "Usa la multiplicación"
+                respuesta: quantity = cantidad * precio,
+               
             });
 
             banco.push({
                 icono: "🍕",
                 pregunta: `Compraste ${cantidad} pizzas a ${C(precio)} cada una. ¿Cuánto es el total?`,
                 respuesta: cantidad * precio,
-                pista: "Calcula cantidad × precio"
+              
             });
 
             banco.push({
                 icono: "🍔",
                 pregunta: `Tenías ${C(precio * 10)} y gastaste ${C(precio)} en hamburguesas. ¿Cuántos córdobas te quedan?`,
                 respuesta: (precio * 10) - precio,
-                pista: "Debes realizar una resta"
+              
             });
 
             banco.push({
                 icono: "🥤",
                 pregunta: `Si cada gaseosa cuesta ${C(precio)} y compras ${cantidad}. ¿Cuánto pagas?`,
                 respuesta: cantidad * precio,
-                pista: "Multiplicación simple"
+               
             });
 
             banco.push({
                 icono: "🍩",
                 pregunta: `Si repartes ${C(cantidad * 100)} en partes iguales entre ${cantidad} personas. ¿Cuánto recibe cada una?`,
                 respuesta: 100,
-                pista: "Divide el total entre los clientes"
+               
             });
         }
         return mezclar(banco).slice(0, 10);
     }
 
     function iniciarJuego() {
-        initAudio();
         document.getElementById("inicio").style.display = "none";
         document.getElementById("resultado").style.display = "none";
         document.getElementById("juego").style.display = "block";
@@ -340,18 +350,19 @@
         let p = preguntas[indice];
         if (seleccionado === p.respuesta) {
             aciertos++;
-            document.getElementById("puntos").innerText = aciertos;
+            document.getElementById("puntos").innerText = aciertos * 10;
             document.getElementById("avatar").innerText = "😎";
-            reproducirSonido('correcto');
+            sonidoCorrecto();
         } else {
             document.getElementById("avatar").innerText = "😥";
-            reproducirSonido('incorrecto');
+            sonidoError();
         }
 
         let botones = document.querySelectorAll(".opcion");
         botones.forEach(b => b.disabled = true);
 
         setTimeout(() => {
+            document.getElementById("avatar").innerText = "🤖";
             indice++;
             if (indice < 10) {
                 mostrarPregunta();
@@ -367,16 +378,24 @@
         document.getElementById("resultado").style.display = "block";
 
         let porcentaje = (aciertos / 10) * 100;
-        document.getElementById("porcentaje").innerText = `${porcentaje}% de Aciertos`;
-        
+        document.getElementById("porcentaje").innerText = `${porcentaje}%`;
+        document.getElementById("res-correctas").innerText = aciertos;
+        document.getElementById("res-incorrectas").innerText = 10 - aciertos;
+        document.getElementById("res-tiempo").innerText = segundos;
+
+        let rango = "Aprendiz";
         let insignia = "🥉";
-        if (porcentaje >= 90) insignia = "🥇";
-        else if (porcentaje >= 70) insignia = "🥈";
-        
+
+        if (porcentaje >= 90) {
+            rango = "Experto";
+            insignia = "🥇";
+        } else if (porcentaje >= 70) {
+            rango = "Avanzado";
+            insignia = "🥈";
+        }
+
+        document.getElementById("rango").innerText = rango;
         document.getElementById("insignia").innerText = insignia;
-        document.getElementById("resumen").innerText = `Completaste el juego en ${segundos} segundos respondiendo correctamente ${aciertos} de 10 preguntas.`;
-        
-        reproducirSonido('victoria');
     }
 
     function reiniciar() {
