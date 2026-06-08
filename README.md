@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AM/PM MateKen2 - Nicaragua</title>
+    <title>AM/PM MateKen2  - Nicaragua</title>
     <style>
         * {
             margin: 0;
@@ -151,7 +151,7 @@
 <body>
 
 <div class="contenedor">
-    <h1>🏪 AM/PM MateKen2h1>
+    <h1>🏪 AM/PM MateKen2  </h1>
 
     <div id="inicio">
         <div class="avatar">🤖</div>
@@ -263,42 +263,42 @@
                 icono: "🌭",
                 pregunta: `Compraste ${cantidad} hot dogs a ${C(precio)} cada uno. ¿Cuánto pagaste en total?`,
                 respuesta: cantidad * precio,
-              
+                pista: "Multiplica la cantidad por el precio"
             });
 
             banco.push({
                 icono: "☕",
                 pregunta: `Compraste ${cantidad} cafés a ${C(precio)} cada uno. ¿Cuál es el total en córdobas?`,
                 respuesta: quantity = cantidad * precio,
-               
+                pista: "Usa la multiplicación"
             });
 
             banco.push({
                 icono: "🍕",
                 pregunta: `Compraste ${cantidad} pizzas a ${C(precio)} cada una. ¿Cuánto es el total?`,
                 respuesta: cantidad * precio,
-              
+                pista: "Calcula cantidad × precio"
             });
 
             banco.push({
                 icono: "🍔",
                 pregunta: `Tenías ${C(precio * 10)} y gastaste ${C(precio)} en hamburguesas. ¿Cuántos córdobas te quedan?`,
                 respuesta: (precio * 10) - precio,
-              
+                pista: "Debes realizar una resta"
             });
 
             banco.push({
                 icono: "🥤",
                 pregunta: `Si cada gaseosa cuesta ${C(precio)} y compras ${cantidad}. ¿Cuánto pagas?`,
                 respuesta: cantidad * precio,
-               
+                pista: "Multiplicación simple"
             });
 
             banco.push({
                 icono: "🍩",
                 pregunta: `Si repartes ${C(cantidad * 100)} en partes iguales entre ${cantidad} personas. ¿Cuánto recibe cada una?`,
                 respuesta: 100,
-               
+                pista: "Divide el total entre los clientes"
             });
         }
         return mezclar(banco).slice(0, 10);
