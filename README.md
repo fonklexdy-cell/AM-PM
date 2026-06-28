@@ -429,7 +429,7 @@
         document.getElementById("inicio").style.display = "block";
     }
 </script>
-<a href="https://mateken2.netlify.app/" target="_blank" class="btn-flotante-mateken">
+<a href="https://mateken2.pages.dev/" target="_blank" class="btn-flotante-mateken">
     🤖 Ir a MateKen2
 </a>
 </body>
